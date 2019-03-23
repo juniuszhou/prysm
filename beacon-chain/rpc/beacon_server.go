@@ -12,6 +12,7 @@ import (
 	pbp2p "github.com/prysmaticlabs/prysm/proto/beacon/p2p/v1"
 	pb "github.com/prysmaticlabs/prysm/proto/beacon/rpc/v1"
 	"github.com/prysmaticlabs/prysm/shared/bytesutil"
+	"github.com/prysmaticlabs/prysm/shared/hashutil"
 	"github.com/prysmaticlabs/prysm/shared/params"
 	"github.com/prysmaticlabs/prysm/shared/trieutil"
 )
@@ -69,12 +70,16 @@ func (bs *BeaconServer) WaitForChainStart(req *ptypes.Empty, stream pb.BeaconSer
 
 // CanonicalHead of the current beacon chain. This method is requested on-demand
 // by a validator when it is their time to propose or attest.
-func (bs *BeaconServer) CanonicalHead(ctx context.Context, req *ptypes.Empty) (*pbp2p.BeaconBlock, error) {
+func (bs *BeaconServer) CanonicalHead(ctx context.Context, req *ptypes.Empty) (*pb.BlockRootResponse, error) {
 	block, err := bs.beaconDB.ChainHead()
 	if err != nil {
 		return nil, fmt.Errorf("could not get canonical head block: %v", err)
 	}
-	return block, nil
+	blockHash, err := hashutil.HashBeaconBlock(block)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.BlockRootResponse{BlockRootHash32: blockHash[:]}, nil
 }
 
 // LatestAttestation streams the latest processed attestations to the rpc clients.

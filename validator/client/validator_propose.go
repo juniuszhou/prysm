@@ -10,7 +10,6 @@ import (
 	pbp2p "github.com/prysmaticlabs/prysm/proto/beacon/p2p/v1"
 	pb "github.com/prysmaticlabs/prysm/proto/beacon/rpc/v1"
 	"github.com/prysmaticlabs/prysm/shared/forkutil"
-	"github.com/prysmaticlabs/prysm/shared/hashutil"
 	"github.com/prysmaticlabs/prysm/shared/params"
 	"github.com/sirupsen/logrus"
 	"go.opencensus.io/trace"
@@ -31,16 +30,12 @@ func (v *validator) ProposeBlock(ctx context.Context, slot uint64) {
 	log.Info("Performing a beacon block proposal...")
 	// 1. Fetch data from Beacon Chain node.
 	// Get current head beacon block.
-	headBlock, err := v.beaconClient.CanonicalHead(ctx, &ptypes.Empty{})
+	head, err := v.beaconClient.CanonicalHead(ctx, &ptypes.Empty{})
 	if err != nil {
 		log.Errorf("Failed to fetch CanonicalHead: %v", err)
 		return
 	}
-	parentTreeRoot, err := hashutil.HashBeaconBlock(headBlock)
-	if err != nil {
-		log.Errorf("Failed to hash parent block: %v", err)
-		return
-	}
+	parentTreeRoot := head.BlockRootHash32
 
 	// Get validator ETH1 deposits which have not been included in the beacon chain.
 	pDepResp, err := v.beaconClient.PendingDeposits(ctx, &ptypes.Empty{})

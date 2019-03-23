@@ -49,7 +49,7 @@ func (ps *ProposerServer) ProposerIndex(ctx context.Context, req *pb.ProposerInd
 
 // ProposeBlock is called by a proposer during its assigned slot to create a block in an attempt
 // to get it processed by the beacon node as the canonical head.
-func (ps *ProposerServer) ProposeBlock(ctx context.Context, blk *pbp2p.BeaconBlock) (*pb.ProposeResponse, error) {
+func (ps *ProposerServer) ProposeBlock(ctx context.Context, blk *pbp2p.BeaconBlock) (*pb.BlockRootResponse, error) {
 	h, err := hashutil.HashBeaconBlock(blk)
 	if err != nil {
 		return nil, fmt.Errorf("could not tree hash block: %v", err)
@@ -67,7 +67,7 @@ func (ps *ProposerServer) ProposeBlock(ctx context.Context, blk *pbp2p.BeaconBlo
 	if err := ps.chainService.SaveHistoricalState(beaconState); err != nil {
 		log.Errorf("Could not save new historical state: %v", err)
 	}
-	return &pb.ProposeResponse{BlockRootHash32: h[:]}, nil
+	return &pb.BlockRootResponse{BlockRootHash32: h[:]}, nil
 }
 
 // PendingAttestations retrieves attestations kept in the beacon node's operations pool which have
