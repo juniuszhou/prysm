@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/prysmaticlabs/prysm/beacon-chain/attestation"
 	b "github.com/prysmaticlabs/prysm/beacon-chain/core/blocks"
 	"github.com/prysmaticlabs/prysm/beacon-chain/core/state"
@@ -317,6 +318,8 @@ func TestReceiveBlock_OnChainSplit(t *testing.T) {
 	}
 	genesisSlot := params.BeaconConfig().GenesisSlot
 
+	var state3 *pb.BeaconState
+
 	// Top chain slots (see graph)
 	blockSlots := []uint64{1, 2, 3, 5, 8}
 	for _, slot := range blockSlots {
@@ -331,9 +334,23 @@ func TestReceiveBlock_OnChainSplit(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+
+		if slot == 3 {
+			state3 = proto.Clone(computedState).(*pb.BeaconState)
+			if !proto.Equal(state3, computedState) {
+				t.Fatal("States are not equal after clone")
+			}
+		}
+
 		stateRoot, err = hashutil.HashProto(computedState)
 		if err != nil {
 			t.Fatal(err)
+		}
+
+		if slot == 3 {
+			if !proto.Equal(state3, computedState) {
+				t.Fatal("States are not equal after hashing")
+			}
 		}
 		if err = db.SaveBlock(block); err != nil {
 			t.Fatal(err)
@@ -362,10 +379,16 @@ func TestReceiveBlock_OnChainSplit(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	stateRoot, err = hashutil.HashProto(beaconState)
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	if !proto.Equal(state3, beaconState) {
+		t.Fatal("states are not equal")
+	}
+
 	if stateRoot != bytesutil.ToBytes32(commonAncestor.StateRootHash32) {
 		t.Fatalf("Mismatched state roots for common ancestor. Wanted %#x got %#x", commonAncestor.StateRootHash32, stateRoot)
 	}

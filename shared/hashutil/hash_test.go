@@ -2,9 +2,12 @@ package hashutil_test
 
 import (
 	"encoding/hex"
+	"io/ioutil"
 	"testing"
 
+	"github.com/gogo/protobuf/proto"
 	fuzz "github.com/google/gofuzz"
+	pbp2p "github.com/prysmaticlabs/prysm/proto/beacon/p2p/v1"
 	pb "github.com/prysmaticlabs/prysm/proto/testing"
 	"github.com/prysmaticlabs/prysm/shared/bytesutil"
 	"github.com/prysmaticlabs/prysm/shared/hashutil"
@@ -65,5 +68,24 @@ func TestHashProtoFuzz(t *testing.T) {
 		msg := &pb.AddressBook{}
 		f.Fuzz(msg)
 		_, _ = hashutil.HashProto(msg)
+	}
+}
+
+func TestHashStateProtoEquality(t *testing.T) {
+	contents, err := ioutil.ReadFile("./state.pb.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	state := &pbp2p.BeaconState{}
+	if err := proto.UnmarshalText(string(contents), state); err != nil {
+		t.Fatal(err)
+	}
+
+	stateCopy := proto.Clone(state)
+	_, _ = hashutil.HashProto(state)
+
+	if !proto.Equal(state, stateCopy) {
+		t.Error("State protos are not equal after hashing")
 	}
 }

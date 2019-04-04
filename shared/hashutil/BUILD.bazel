@@ -23,6 +23,7 @@ go_test(
         "hash_test.go",
         "merkleRoot_test.go",
     ],
+    data = [":state.pb.txt"],
     embed = [":go_default_library"],
     deps = [
         "//proto/beacon/p2p/v1:go_default_library",
