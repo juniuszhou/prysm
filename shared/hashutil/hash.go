@@ -2,15 +2,18 @@ package hashutil
 
 import (
 	"errors"
-	"reflect"
 
+	objecthash "github.com/deepmind/objecthash-proto"
 	"github.com/gogo/protobuf/proto"
+	"github.com/prysmaticlabs/prysm/shared/bytesutil"
 	"golang.org/x/crypto/sha3"
 )
 
 // ErrNilProto can occur when attempting to hash a protobuf message that is nil
 // or has nil objects within lists.
 var ErrNilProto = errors.New("cannot hash a nil protobuf message")
+
+var hasher = objecthash.NewHasher()
 
 // Hash defines a function that returns the
 // Keccak-256/SHA3 hash of the data passed in.
@@ -50,12 +53,17 @@ func HashProto(msg proto.Message) (result [32]byte, err error) {
 		}
 	}()
 
-	if msg == nil || reflect.ValueOf(msg).IsNil() {
-		return [32]byte{}, ErrNilProto
-	}
-	data, err := proto.Marshal(msg)
+	//	if msg == nil || reflect.ValueOf(msg).IsNil() {
+	//		return [32]byte{}, ErrNilProto
+	//	}
+	//	data, err := proto.Marshal(msg)
+	//	if err != nil {
+	//		return [32]byte{}, err
+	//	}
+	//	return Hash(data), nil
+	h, err := hasher.HashProto(msg)
 	if err != nil {
 		return [32]byte{}, err
 	}
-	return Hash(data), nil
+	return bytesutil.ToBytes32(h), nil
 }

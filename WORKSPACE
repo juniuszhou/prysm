@@ -1064,3 +1064,9 @@ go_repository(
     commit = "502116f1a0a0c1140aab04fd3787489209b357d3",  # v1.2.0
     importpath = "github.com/grpc-ecosystem/go-grpc-prometheus",
 )
+
+go_repository(
+    name = "com_github_deepmind_objecthash_proto",
+    commit = "5db4e5a3f4f441a0e4f7e4addf8eb89bc73c3b5d",
+    importpath = "github.com/deepmind/objecthash-proto",
+)

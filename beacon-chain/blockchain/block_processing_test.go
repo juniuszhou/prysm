@@ -335,6 +335,7 @@ func TestReceiveBlock_OnChainSplit(t *testing.T) {
 			t.Fatal(err)
 		}
 
+		// Note: try this thing https://github.com/deepmind/objecthash-proto
 		if slot == 3 {
 			state3 = proto.Clone(computedState).(*pb.BeaconState)
 			if !proto.Equal(state3, computedState) {
